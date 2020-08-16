@@ -705,12 +705,31 @@ open class LocationPicker: UIViewController, UIGestureRecognizerDelegate {
             var placemark = placemarks[0]
             if !self.isRedirectToExactCoordinate {
                 placemark = MKPlacemark(coordinate: location.coordinate, addressDictionary: placemark.addressDictionary as? [String : NSObject])
+                if !self.searchBar.isFirstResponder {
+                    let mapItem = MKMapItem(placemark: MKPlacemark(placemark: placemark))
+                    self.selectLocationItem(LocationItem(mapItem: mapItem))
+                }
+            } else {
+                if let ad = placemark.addressDictionary {
+                    self.geocoder.geocodeAddressDictionary(ad) { (placemarks, error) -> Void in
+                        guard error == nil else {
+                            print(error!)
+                            return
+                        }
+                        placemark = placemarks?.first ?? placemark
+                        if !self.searchBar.isFirstResponder {
+                            let mapItem = MKMapItem(placemark: MKPlacemark(placemark: placemark))
+                            self.selectLocationItem(LocationItem(mapItem: mapItem))
+                        }
+                    }
+                } else {
+                    if !self.searchBar.isFirstResponder {
+                        let mapItem = MKMapItem(placemark: MKPlacemark(placemark: placemark))
+                        self.selectLocationItem(LocationItem(mapItem: mapItem))
+                    }
+                }
             }
             
-            if !self.searchBar.isFirstResponder {
-                let mapItem = MKMapItem(placemark: MKPlacemark(placemark: placemark))
-                self.selectLocationItem(LocationItem(mapItem: mapItem))
-            }
         })
     }
     
